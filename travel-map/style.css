@@ -1,0 +1,88 @@
+html,
+body,
+#map {
+    height: 100%;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+#search_bar {
+  position: absolute;
+  z-index: 2;
+  padding: 10px;
+}
+
+.form-control-borderless {
+    border: none;
+}
+
+.form-control-borderless:hover, .form-control-borderless:active, .form-control-borderless:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+
+#my_dir {
+  width: calc(27% - 1px);
+  font-family: helvetica;
+  padding: 20px;
+  padding-top: 0px;
+}
+
+
+#my_dir ul {
+  list-style: none;
+  padding-left: 0px;
+}
+
+#my_dir ul li {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 1px solid #CCCCCC;
+}
+
+#my_dir .heading {
+  font-weight: bold;
+  color: #444444
+}
+
+#my_dir .street, .next-street {
+  font-weight: bold;
+}
+
+#my_dir .distance-description {
+  color: #777777
+}
+
+#my_dir .rating {
+  padding-left: 20px;
+}
+
+.obstacle {
+  margin-top: -20px;
+  margin-left: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  /*background-color: #DD3737;*/
+}
+
+.obstacle h3 {
+  color: white;
+  position: relative;
+  top: -13px;
+  left: 7.5px;
+}
+
+.obstacle.btn-warning h3 {
+  position: relative;
+  top: -16px;
+}
+
+.obstacle.btn-primary h3 {
+  position: relative;
+  top: -12px;
+  left: 6.5px;
+}

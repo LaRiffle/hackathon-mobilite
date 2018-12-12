@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+<meta name="viewport" content="initial-scale=1.0, width=device-width" />
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css?dp-version=1542186754" />
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
+<script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
+<script type="text/javascript" src="data.js"></script>
+
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+  <div id="my_dir" style="height: 100vh; float: left;">
+    <h3>Instructions</h3>
+    <ul id="dir_list">
+    </ul>
+    <h3>Qualité du parcours</h3>
+    <h2 class="rating">&#9734;&#9734;&#9734;&#9734;&#9734;</h2>
+  </div>
+  <div id="map" style="width: 73%; height: 100vh; background: white; float: left;">
+    <div id="search_bar">
+      <div class="input-group" style="width: 300px">
+        <input type="text" class="form-control" placeholder="Rechercher un itinéraire..." aria-describedby="basic-addon2">
+        <span class="input-group-addon" id="basic-addon2"><span class="glyphicon glyphicon-search"></span></span>
+      </div>
+    </div>
+  </div>
+  <script  type="text/javascript" charset="UTF-8" >
+  var show_directions = function (directions){
+      var ul = document.getElementById('dir_list')
+      console.log(directions)
+      for (var i=0; i<directions.length; i++){
+        var direction = directions[i]
+        var instruction = direction.instruction
+        var li = document.createElement("li");
+        li.innerHTML = instruction
+        ul.appendChild(li);
+      }
+  }
+
+  // Instantiate a map and platform object:
+  var platform = new H.service.Platform({
+    'app_id': '3pKrBrPOFRPTun3m5GMB',
+    'app_code': 'F9owV0ccQ2if2Vm4bDGLHA'
+  });
+
+  // Create a style object:
+  var customStyle = {
+    strokeColor: 'black',
+    fillColor: 'rgba(255, 255, 255, 0.5',
+    lineWidth: 3,
+    lineCap: 'square',
+    lineJoin: 'bevel'
+  };
+
+  var map_marker =  function (type, text){
+    var logo = '';
+    switch (type) {
+      case 'danger':
+        logo = '<span class="glyphicon glyphicon-ban-circle"></span>'
+        break;
+      case 'success':
+        logo = '<span class="glyphicon glyphicon-info-sign"></span>'
+        break;
+      case 'warning':
+        logo = '<span class="glyphicon glyphicon-warning-sign"></span>'
+        break;
+      case 'primary':
+        logo = '<span class="glyphicon glyphicon glyphicon-heart-empty"></span>'
+        break;
+    }
+    var html_marker =  `<a href="#" data-toggle="tooltip" title="${text}" class="obstacle btn-${type}">
+    <h3>${logo}</h3></a>`
+    icon = new H.map.DomIcon(html_marker)
+    return icon
+  }
+
+  // Get the default map types from the platform object:
+  var defaultLayers = platform.createDefaultLayers();
+
+  // Instantiate the map:
+  var map = new H.Map(
+    document.getElementById('map'),
+    defaultLayers.terrain.map,
+    {
+    zoom: 10,
+    center: { lat: 52.51, lng: 13.4 }
+    });
+
+  var ui = H.ui.UI.createDefault(map, defaultLayers);
+
+  var diam_lat = 0.0002
+  var diam_lng = 0.00033
+  var avoids = [
+    [48.542898, 2.657865, 'Travaux de réfection de la chaussée'],
+    [48.541097, 2.662310, 'Route condamnée pour travaux'],
+    [48.543356, 2.662481, 'Dénivelé sur la voie (4%-8%)'],
+  ]
+  var warnings = [
+    [48.539611, 2.660580, 'Scooter en travers du trottoir'],
+
+  ]
+  var successes = [
+    [48.542493, 2.654618, 'Départ'],
+    [48.544394,2.666131, 'Kebab station imperiale']
+  ]
+
+  var avoidareas = []
+
+  for (var i = 0; i < avoids.length; i++) {
+    var avoid = avoids[i]
+    var coords = {lat: avoid[0], lng: avoid[1]}
+    var title = avoid[2]
+    var marker = new H.map.DomMarker(coords, {icon: map_marker('danger', title)});
+
+    lat1 = avoid[0] + diam_lat
+    lng1 = avoid[1] - diam_lng
+    lat2 = avoid[0] - diam_lat
+    lng2 = avoid[1] + diam_lng
+
+    avoidareas.push(`${lat1},${lng1};${lat2},${lng2}`)
+
+    map.addObject(marker);
+    // Create a rectangle and pass the custom style as an options parameter:
+    var rect = new H.map.Rect(new H.geo.Rect(lat1, lng1, lat2, lng2),
+      { style: customStyle });
+    // map.addObject(rect);
+  }
+
+  for(var i=0; i<data_jaccede.items.length; i++){
+    var item = data_jaccede.items[i]
+    coords = {lat: item.latitude, lng: item.longitude}
+    var marker = new H.map.DomMarker(coords, {icon: map_marker('success', item.name)});
+    map.addObject(marker);
+  }
+
+  for (var coords in data_health) {
+    var item = data_health[coords]
+    coords = coords.split(';').map(Number)
+    coords = lambert93toWGPS(coords[0], coords[1])
+    coords = {lat: coords[1], lng: coords[0]}
+    var marker = new H.map.DomMarker(coords, {icon: map_marker('primary', item)});
+    map.addObject(marker);
+  }
+
+  for (var i = 0; i < warnings.length; i++) {
+    var warning = warnings[i]
+    var coords = {lat: warning[0], lng: warning[1]}
+    var title = warning[2]
+    var marker = new H.map.DomMarker(coords, {icon: map_marker('warning', title)});
+    map.addObject(marker);
+  }
+
+  console.log(successes)
+  for (var i = 0; i < successes.length; i++) {
+    console.log(successes[i])
+    var item = successes[i];
+    var coords = {lat: item[0], lng: item[1]}
+    var title = item[2];
+    var marker = new H.map.DomMarker(coords, {icon: map_marker('success', title)});
+    map.addObject(marker);
+  }
+
+  var routingParameters = {
+    'waypoint0': 'geo!48.542493,2.655118',
+    'waypoint1': 'geo!48.544394,2.666131',
+    'mode':'fastest;pedestrian;traffic:disabled',
+    'representation': 'display',
+    'avoidareas': avoidareas.join('!'),
+    'language': 'fr-fr',
+    'departure': '2018-12-12T17:00:00+02'
+  }
+
+  // Define a callback function to process the routing response:
+  var onResult = function(result) {
+    var route,
+      routeShape,
+      startPoint,
+      endPoint,
+      linestring;
+    if(result.response.route) {
+    // Pick the first route from the response:
+    route = result.response.route[0];
+    // Pick the route's shape:
+    routeShape = route.shape;
+
+    // Create a linestring to use as a point source for the route line
+    linestring = new H.geo.LineString();
+
+    // Push all the points in the shape into the linestring:
+    routeShape.forEach(function(point) {
+      var parts = point.split(',');
+      linestring.pushLatLngAlt(parts[0], parts[1]);
+    });
+
+    // Retrieve the mapped positions of the requested waypoints:
+    startPoint = route.waypoint[0].mappedPosition;
+    endPoint = route.waypoint[1].mappedPosition;
+
+    // Create a polyline to display the route:
+    var routeLine = new H.map.Polyline(linestring, {
+      style: { strokeColor: '#137CBD', lineWidth: 10 }
+    });
+
+    // Create a marker for the start point:
+    var startMarker = new H.map.Marker({
+      lat: startPoint.latitude,
+      lng: startPoint.longitude
+    });
+
+    // Create a marker for the end point:
+    var endMarker = new H.map.Marker({
+      lat: endPoint.latitude,
+      lng: endPoint.longitude
+    });
+
+    // Add the route polyline and the two markers to the map:
+    map.addObjects([routeLine, startMarker, endMarker]);
+
+    // Set the map's viewport to make the whole route visible:
+    map.setViewBounds(routeLine.getBounds());
+    }
+
+    directions = route.leg[0].maneuver
+    show_directions(directions)
+
+  };
+
+  // Get an instance of the routing service:
+  var router = platform.getRoutingService();
+
+  // Call calculateRoute() with the routing parameters,
+  // the callback and an error callback function (called if a
+  // communication error occurs):
+  router.calculateRoute(routingParameters, onResult,
+    function(error) {
+      alert(error.message);
+    });
+
+
+  setTimeout(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+  }, 1000);
+
+  </script>
+</body>
+</html>
